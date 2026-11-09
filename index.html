@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Support Case Quest</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Lato:wght@400;700;900&display=swap">
+<style>
+/* Layout: one column. A "level map" home, a focused question card, and a results screen. Colors match the training series. */
+:root{
+  --bg:#F3F6FB; --surface:#FFFFFF; --ink:#0B2545; --muted:#3B4F6B; --line:#DCE1E8; --shadow:0 8px 24px rgba(11,37,69,.08);
+  --blue:#1466F0; --blue-soft:#DCE7F7; --green:#2F7A22; --green-soft:#E5F4DE; --orange:#C2410C; --orange-soft:#FCE3CC;
+  --red:#B42318; --red-soft:#FFE4E0; --teal:#0E7490; --teal-soft:#DDF3F7; --purple:#5867E8; --purple-soft:#E8EAFD;
+  --navy:#0B2545; --navy-soft:#E3E8F0; --gold:#B7791F; --gold-soft:#FFF3D6; --hero:#0B2545; --hero-ink:#FFFFFF; --hero-muted:#C9D6E8;
+  --display:"Lexend","Segoe UI",system-ui,sans-serif; --body:"Lato","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1B2E; --surface:#15253D; --ink:#EAF0F8; --muted:#A9B8CC; --line:#26385A; --shadow:0 8px 24px rgba(0,0,0,.35);
+  --blue:#6EA8FF; --blue-soft:#1B3358; --green:#8FD16F; --green-soft:#1D3A22; --orange:#FFA06B; --orange-soft:#3D2717;
+  --red:#FF8A7A; --red-soft:#43201C; --teal:#5FD0E6; --teal-soft:#123A44; --purple:#A3ACFF; --purple-soft:#26294D;
+  --navy:#C9D6E8; --navy-soft:#22324E; --gold:#F5C46B; --gold-soft:#3A2E14; --hero:#091424; --hero-ink:#FFFFFF; --hero-muted:#A9B8CC; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1B2E; --surface:#15253D; --ink:#EAF0F8; --muted:#A9B8CC; --line:#26385A; --shadow:0 8px 24px rgba(0,0,0,.35);
+  --blue:#6EA8FF; --blue-soft:#1B3358; --green:#8FD16F; --green-soft:#1D3A22; --orange:#FFA06B; --orange-soft:#3D2717;
+  --red:#FF8A7A; --red-soft:#43201C; --teal:#5FD0E6; --teal-soft:#123A44; --purple:#A3ACFF; --purple-soft:#26294D;
+  --navy:#C9D6E8; --navy-soft:#22324E; --gold:#F5C46B; --gold-soft:#3A2E14; --hero:#091424; --hero-ink:#FFFFFF; --hero-muted:#A9B8CC; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:23px;border:none;font-weight:900;font-size:15px;cursor:pointer;text-decoration:none}
+.btn-primary{background:#1466F0;color:#fff}
+.btn-ghost{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.btn-green{background:#2F7A22;color:#fff}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* Hero */
+.hero{background:var(--hero);color:var(--hero-ink)}
+.hero .wrap{padding-block:28px 26px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-size:13px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#8FD16F}
+.hero h1{font-size:clamp(30px,5vw,46px);line-height:1.08;margin-top:6px}
+.hero p{margin:8px 0 0;color:var(--hero-muted);max-width:620px;font-size:17px}
+.hero a{color:#9CC2FF}
+.player{display:flex;flex-direction:column;gap:10px;min-width:260px}
+.rankcard{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:14px 16px;display:flex;gap:14px;align-items:center}
+.rankicon{width:52px;height:52px;border-radius:14px;background:#FFD27A;color:#0B2545;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rankname{font-family:var(--display);font-size:20px;font-weight:700}
+.rankpts{font-size:14px;color:var(--hero-muted);font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:#8FD16F;border-radius:4px;transition:width .6s ease}
+.toggles{display:flex;gap:8px;flex-wrap:wrap}
+.tog{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.tog[aria-pressed="true"]{background:#FFD27A;border-color:#FFD27A;color:#0B2545}
+
+/* Home */
+main{padding-block:24px 48px}
+.howto{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px}
+.how{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--muted)}
+.how b{display:block;color:var(--ink);font-size:15px}
+.sectionhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin:8px 0 12px}
+.sectionhead h2{font-size:22px}
+.sectionhead span{color:var(--muted);font-size:14px}
+.levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.lvl{position:relative;display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);min-width:0}
+.lvl.passed{border-color:var(--green)}
+.lvltop{display:flex;gap:14px;align-items:flex-start}
+.lvlnum{flex-shrink:0;width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:22px;font-weight:700;color:#fff}
+.lvl h3{font-size:19px;line-height:1.2}
+.lvl p{margin:4px 0 0;font-size:14px;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:12px;font-weight:900;padding:3px 10px;border-radius:999px;background:var(--navy-soft);color:var(--navy)}
+.lvlfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;flex-wrap:wrap}
+.stars{display:flex;gap:3px}
+.star{width:22px;height:22px;color:var(--line)}
+.star.on{color:#F5B400}
+.best{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.boss{grid-column:1/-1;background:linear-gradient(0deg,var(--surface),var(--surface));border:2px dashed var(--line)}
+.boss.open{border:2px solid #F5B400;background:var(--gold-soft)}
+.lockmsg{font-size:14px;color:var(--muted);font-weight:700}
+.badges{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:8px}
+.badge{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);min-width:0}
+.badge .ic{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--navy-soft);color:var(--muted)}
+.badge.got .ic{background:#FFD27A;color:#0B2545}
+.badge b{display:block;font-size:14px;line-height:1.2}
+.badge span{font-size:12px;color:var(--muted);line-height:1.3;display:block}
+.badge:not(.got){opacity:.6}
+.share{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.share label{font-weight:900;font-size:14px}
+.share input{flex:1 1 220px;min-width:0;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 14px;font-size:16px}
+.msg{font-size:14px;font-weight:900;color:var(--green)}
+footer{padding-block:20px 40px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+footer a{color:var(--blue);font-weight:700}
+
+/* Quiz */
+.qtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line)}
+.qtopin{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.qtitle{font-family:var(--display);font-weight:700;font-size:17px;flex:1 1 200px;min-width:0}
+.score{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:17px;background:var(--surface);border:1px solid var(--line);font-weight:900;font-size:14px;font-variant-numeric:tabular-nums}
+.chip.fire{background:var(--orange-soft);border-color:transparent;color:var(--orange)}
+.dots{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.dot{width:14px;height:8px;border-radius:4px;background:var(--line)}
+.dot.ok{background:var(--green)}.dot.no{background:var(--red)}.dot.now{background:var(--blue)}
+.timer{height:6px;border-radius:3px;background:var(--line);margin-top:10px;overflow:hidden}
+.timer i{display:block;height:100%;background:var(--blue);width:100%}
+.timer.low i{background:var(--red)}
+.qcard{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:clamp(18px,4vw,30px)}
+.qcard.shake{animation:shake .45s}
+@keyframes shake{20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.qmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.qtype{font-size:12px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+.qfrom{font-size:13px;color:var(--muted);font-weight:700}
+.qtext{font-family:var(--display);font-size:clamp(20px,3vw,26px);font-weight:600;line-height:1.3;margin:10px 0 18px}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:14px;align-items:center;width:100%;text-align:left;min-height:56px;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:var(--surface);cursor:pointer;font-size:16px;font-weight:700;line-height:1.35;transition:border-color .15s,transform .15s}
+.opt:hover:not([disabled]){border-color:var(--blue);transform:translateY(-1px)}
+.opt .key{flex-shrink:0;width:30px;height:30px;border-radius:9px;background:var(--navy-soft);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900}
+.opt[disabled]{cursor:default}
+.opt.right{border-color:var(--green);background:var(--green-soft)}
+.opt.right .key{background:var(--green);color:#fff}
+.opt.wrong{border-color:var(--red);background:var(--red-soft)}
+.opt.wrong .key{background:var(--red);color:#fff}
+.opt.gone{opacity:.25}
+.opt.picked .key{background:var(--blue);color:#fff}
+.tfrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tfrow .opt{justify-content:center;font-size:20px;min-height:72px}
+.ordhint{font-size:14px;color:var(--muted);margin:-6px 0 12px}
+.life{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.lifebtn{min-height:40px;padding:0 14px;border-radius:20px;border:1px dashed var(--line);background:transparent;font-weight:900;font-size:14px;cursor:pointer;color:var(--muted)}
+.lifebtn[disabled]{opacity:.4;cursor:not-allowed}
+.hint{margin-top:12px;font-size:14px;color:var(--muted);font-weight:700}
+.fb{margin-top:18px;border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.fb.ok{background:var(--green-soft)}
+.fb.no{background:var(--red-soft)}
+.fbhead{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:20px;font-weight:700}
+.fb.ok .fbhead{color:var(--green)}.fb.no .fbhead{color:var(--red)}
+.pts{margin-left:auto;font-family:var(--body);font-size:15px;font-weight:900;color:var(--green)}
+.fb p{margin:0;font-size:16px;line-height:1.5}
+.review{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:8px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);color:var(--blue);font-weight:900;font-size:14px;text-decoration:none}
+.nextrow{display:flex;justify-content:flex-end;margin-top:16px;gap:10px;flex-wrap:wrap}
+.pop{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:30;font-family:var(--display);font-weight:700;font-size:clamp(28px,6vw,48px);color:#F5B400;text-shadow:0 4px 18px rgba(0,0,0,.25);pointer-events:none;animation:popup 1.1s ease forwards}
+@keyframes popup{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+
+/* Results */
+.res{margin-top:22px;display:flex;flex-direction:column;gap:16px}
+.reshero{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:24px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.big{font-family:var(--display);font-size:clamp(44px,9vw,72px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.reshero .stars .star{width:40px;height:40px}
+.resgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;max-width:560px}
+.stat{background:var(--bg);border-radius:14px;padding:10px}
+.stat b{display:block;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.newbadges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.missed{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px}
+.missed h3{font-size:18px;margin-bottom:10px}
+.miss{padding:12px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.miss:first-of-type{border-top:none}
+.miss .q{font-weight:900}
+.miss .a{font-size:15px;color:var(--muted)}
+canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40}
+@media (max-width:760px){.howto{grid-template-columns:repeat(2,minmax(0,1fr))}.levels{grid-template-columns:1fr}.badges{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.howto,.badges{grid-template-columns:1fr}.tfrow{grid-template-columns:1fr}.resgrid{grid-template-columns:1fr 1fr 1fr}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<script>
+const BASE = 'https://motionpoint-support.github.io/';
+const LIB = 'https://motionpoint-support.github.io/Support-Training-Library/';
+const TILES = {
+ 1:['Welcome-to-Customer-Support','Welcome to Customer Support'], 2:['Proxy-explained','How the Proxy Works'], 3:['support-case-animation','How a Support Case Begins'],
+ 4:['Support-DOs-and-DONTs','The DOs and DON’Ts of Support'], 5:['Reporting-Technical-Issues-guidelines','Reporting Technical Issues'], 6:['Support-Glossary','Support Glossary'],
+ 7:['Accounts-Entitlements-guidelines','Accounts, Projects and Entitlements'], 8:['MyDay-time-guidelines','Logging Time in My Day'], 9:['My-List-view-Queue-in-SF','My List View Queue'],
+ 10:['Billing-guidelines','Billing Your Support Time'], 11:['Offline-cases-guidelines','Handling Offline Cases'], 12:['Misalignment-guidelines','Misalignment Cases'],
+ 13:['Translation-Cases','Translation Cases'], 14:['PE-Queues-guidelines','PE Queues: Routing the Case Right'], 15:['HAR-file-guidelines','HAR Files for Functionality Cases'],
+ 16:['How-to-Create-case-guidelines','Creating a Case in Salesforce'], 17:['Pushing-Finding-content-with-Charles','Pushing Content with Charles'], 18:['Spike-cases','Handling Spike Cases'],
+ 19:['QA-cases-to-SU','Why QA Sends You Cases'], 20:['Outage-cases-and-process-guidelines','Outage Cases from PE'], 21:['VS-email-guidelines','VS Email Cases'],
+ 22:['cdn-explained','CDN Explained'], 23:['Translation-memory-search-guidelines','Translation Memory Search'], 24:['Webloc-case-flows-advanced','Advanced Webloc Case Flows'],
+ 25:['Call-invites-guidelines','Call Invites in Salesforce'], 26:['Email-Shift-Guidelines','The Email Shift'], 27:['sf-emergency-notification-training','Salesforce Outage: Notify Emergency Contacts'],
+ 28:['Billing-Reconciliation-for-Invoices','Billing Invoice Reconciliation'], 29:['PDR-guidelines','When a Case Becomes a PDR'], 30:['MAP-procedure','MAP Calls'],
+ 31:['On-Call-Procedure','On-Call Procedure'], 32:['Directive-tags','Directive Tags Explained'], 33:['Project-Scope','Project Scope'], 34:['Live-edit-guidelines','Live Edit'],
+ 35:['Memory-Manager','Memory Manager'], 36:['AppA-update-guidelines','Updating the App A'], 37:['API-Guidelines','Finding API Job IDs']
+};
+const LEVELS = [
+ {id:'l1', n:1, name:'First Steps', sub:'Your role, the proxy, how cases begin, and the habits that make you reliable.', tiles:[1,6], color:'green'},
+ {id:'l2', n:2, name:'Salesforce Basics', sub:'Accounts, Entitlements, My Day, your List View, and billing your time.', tiles:[7,10], color:'purple'},
+ {id:'l3', n:3, name:'Case Types', sub:'Offline, Misalignment, Translation, the PE queues, and HAR files.', tiles:[11,15], color:'orange'},
+ {id:'l4', n:4, name:'Cases in Action', sub:'Creating cases, pushing with Charles, Spikes, and cases from QA.', tiles:[16,19], color:'blue'},
+ {id:'l5', n:5, name:'Urgent and Special', sub:'Outages, VS emails, the CDN, translation memory search, and case flows.', tiles:[20,24], color:'red'},
+ {id:'l6', n:6, name:'Daily Procedures', sub:'Call invites, the email shift, Salesforce outages, and invoices.', tiles:[25,28], color:'teal'},
+ {id:'l7', n:7, name:'Escalations and On-Call', sub:'PDRs, MAP calls, and the on-call procedure.', tiles:[29,31], color:'navy'},
+ {id:'l8', n:8, name:'Platform Tools', sub:'Directive Tags, Project Scope, Live Edit, Memory Manager, App A, and the API.', tiles:[32,37], color:'purple'}
+];
+const TF = ['True', 'False'];
+const Q = [
+ // ---------- LEVEL 1: tiles 1-6 ----------
+ {t:1, k:'mc', q:'When does the Support team provide normal coverage?', o:['Monday to Friday, 7 a.m. to 7 p.m. Eastern','Monday to Friday, 9 a.m. to 5 p.m. Eastern','Every day, 8 a.m. to 8 p.m. Eastern','24/7, with the same team on every shift'], a:0, w:'Business hours are Monday to Friday, 7 a.m. to 7 p.m. Eastern. Outside those hours, the on-call model covers urgent cases.'},
+ {t:1, k:'mc', q:'A Premium customer opens a Critical case. How fast must we respond?', o:['Within 30 minutes, 24/7/365','Within 2 business hours','Within 1 business day','Within 4 hours'], a:0, w:'Critical: within 2 hours, or 30 minutes for Premium, 24/7/365. Critical means our services are unavailable, with a big business impact.'},
+ {t:1, k:'mc', q:'Express words cost 2.5 times the per-word price. A customer wants 1,000 words at 10 cents per word as Express. What is the Express cost?', o:['$250','$100','$180','$1,000'], a:0, w:'1,000 words × $0.10 = $100. Times 2.5 for Express = $250. The minimum is at least 500 words in 4 hours.'},
+ {t:2, k:'tf', q:'When the proxy builds the Spanish site, it changes the customer’s English site.', o:TF, a:1, w:'False. The English site is never changed. The proxy picks up the English page, swaps in the translations on the fly, and hands the translated page to the visitor.'},
+ {t:2, k:'mc', q:'The customer publishes a new banner in English. Once it’s translated, fully formatted content is deployed within…', o:['One business day','One hour','One week','Only after a Support case is opened'], a:0, w:'The proxy detects and queues new content automatically, and fully formatted content is deployed within one business day. Nobody has to send anything.'},
+ {t:2, k:'mc', q:'What does AdaptiveQE do?', o:['Scores the quality of each translation and flags anything that needs human review','Translates content in the brand’s voice','Detects new content on the English site','Clears the customer’s CDN cache'], a:0, w:'AdaptiveQE scores each translation. High scores are ready to go, and only flagged content goes to a certified linguist.'},
+ {t:3, k:'mc', q:'What is the most common and most direct way for a customer to reach Support?', o:['Create a case in the MP+ portal','Email the CXM','Call the main office','Post in Teams'], a:0, w:'Customers can email or call, but the most common and direct way is to create a case in MP+. It then travels into our Salesforce case management system.'},
+ {t:3, k:'tf', q:'The first thing to check on any case is whether the account has warnings.', o:TF, a:0, w:'True. Account warnings come first, then the Case Information, the Customer Information, the Description, and the Files.'},
+ {t:4, k:'mc', q:'You want to assign a case to PE, but you can’t replicate the issue yet. What do you do?', o:['Don’t assign it yet. Get the steps, files and screenshots first','Assign it now so the PE can investigate','Close it, since you can’t see the issue','Assign it to the TAM instead'], a:0, w:'Never assign a case blind. If anything is missing, keep investigating or ask the customer. Otherwise it bounces right back.'},
+ {t:4, k:'mc', q:'Working the Client Note report, a customer says the fix worked, and asks about a new page in the same case. What do you do?', o:['Tell the owner about the update, open a new case for the new page, and share the new case number','Add the new request to the same case','Ask the customer to open the new case themselves','Close the case and ignore the new request'], a:0, w:'One issue, one case. Open a new case for the new request, tell the customer it will be worked separately, and share the number.'},
+ {t:5, k:'mc', q:'You can’t log in to Salesforce. You emailed Compass 15 minutes ago and got no reply. What now?', o:['Call Compass now','Wait another hour','Email your staffing partner’s IT team','Keep working your cases in Salesforce'], a:0, w:'Not being able to work is urgent. Email first, and if there’s no reply within 15 minutes, call. Still blocked after another 15 minutes? Tell your backup and Tier II.'},
+ {t:5, k:'mc', q:'Your laptop won’t start, and you have two Express cases. Who do you contact?', o:['Your staffing partner’s IT team, then your backup and Tier II right away','Compass, MotionPoint’s IT team, only','Nobody until the laptop works again','The customer, to delay the cases'], a:0, w:'Hardware goes to your staffing partner’s IT team or POC, not Compass. Then protect the cases: tell your backup and Tier II right away.'},
+ {t:6, k:'mc', q:'In the Support Glossary, what does TTC measure?', o:['How long a case takes from creation to closing','How fast a case is started','How satisfied the customer is','How many cases you close per day'], a:0, w:'TTC is Time to Close: from creation to closing. TTS, Time to Start, is how fast a case is started. CSAT measures satisfaction.'},
+
+ // ---------- LEVEL 2: tiles 7-10 ----------
+ {t:7, k:'mc', q:'Where do you find the customer’s Entitlement in Salesforce?', o:['On the Account, under Entitlements','On the Business Entity, under Related Contacts','In the case description','In My Day'], a:0, w:'The Entitlement lives on the Account, the record with type Customer. It’s not on the Business Entity.'},
+ {t:7, k:'mc', q:'An Express case comes in on Saturday. The Entitlement is Beyond Words Standard. What happens?', o:['It waits for business hours. Standard covers only Critical cases after hours','Work it right away','Upgrade it to Critical so it gets worked','Assign it to the on-call PE'], a:0, w:'Beyond Words Standard covers only Critical cases after hours and on weekends. Beyond Words 24/7 also covers Express.'},
+ {t:7, k:'mc', q:'There’s an emergency on the customer’s Mobile App project. Who do you contact?', o:['People with Emergency Contact checked in the Mobile App Business Entity’s Related Contacts','The emergency contacts of the customer’s website project','Anyone listed on the Account','The CXM only'], a:0, w:'Every Business Entity has its own Related Contacts. Find the right project, then the right checkbox. Never reuse another project’s contacts.'},
+ {t:8, k:'mc', q:'What utilization do you need to stay above, every day?', o:['90%','75%','80%','100%'], a:0, w:'Stay above 90% every day. One missed hour in an 8-hour day drops you to 87.5%, and leadership sees these numbers.'},
+ {t:8, k:'mc', q:'You worked two hours on a customer case. Where do you log that time?', o:['In the case itself','In My Day, as Training','Nowhere, case time is automatic','In the On-Call sheet'], a:0, w:'Case work is logged in the case. My Day is for time that isn’t tied to a case: training, meetings, PTO and more.'},
+ {t:9, k:'mc', q:'Your List View should show cases with which statuses?', o:['New, In Progress and Pending','New and Closed','All statuses','Only Pending'], a:0, w:'The status filter is New, In Progress and Pending, with Case Owner containing your name.'},
+ {t:9, k:'mc', q:'Which column do you sort by so the case due first sits at the top?', o:['Due Date','Case Number','Account Name','Date/Time Opened'], a:0, w:'Sort by Due Date by clicking its column header, then work from the top down.'},
+ {t:10, k:'tf', q:'Handling a customer’s SSL certificate case is billable.', o:TF, a:1, w:'False. SSL and Cert case handling is not billable. A separate educational call about how SSL works is billable.'},
+ {t:10, k:'mc', q:'Which of these is billable?', o:['Re-testing a fix that PE sent back to Support','Passing a simple, clear bug to PE','A follow-up email that extends a deadline','Fixing a trademark MotionPoint mistranslated'], a:0, w:'Regression testing a returned fix is billable. Simple pass-throughs, standard updates and our own translation mistakes are not.'},
+ {t:10, k:'mc', q:'You spend 15 minutes reproducing broken images in a VS email case. Billable?', o:['No. VS email image cases are a customer exception: no billable time','Yes, it took more than five minutes','Only if it’s Express','Only with the CXM’s approval'], a:0, w:'Some customers have their own rule. VS email image cases are never billable, even if the work looks billable.'},
+ {t:10, k:'mc', q:'You logged a non-billable task as Billable. Until when can you correct it?', o:['Until the billing cycle closes','Never, entries are final','Only on the same day','Only Tier II can change it'], a:0, w:'You can correct entries as long as the billing cycle hasn’t closed. In Time Entry, Recent Entries, Edit, and switch to SU Non-Billable with a reason.'},
+
+ // ---------- LEVEL 3: tiles 11-15 ----------
+ {t:11, k:'mc', q:'Which statement about Offline cases is true?', o:['They are never billable, and never worked after hours, even if Express','They are billable when they take over 30 minutes','Express Offline cases are worked after hours','Support translates the documents'], a:0, w:'Never bill on Offline cases, never work them after hours, and assign them to the dedicated Offline TAM.'},
+ {t:11, k:'mc', q:'The description says three documents, but only two are attached. What do you do?', o:['Don’t assign it yet. Ask the customer for the missing file','Assign it and let the TAM ask','Translate the two you have','Close the case'], a:0, w:'Never assign without attachments and clear instructions. Every question gets answered before the case reaches the Offline TAM.'},
+ {t:11, k:'mc', q:'An Offline customer asks if you can deliver two days sooner. What do you say?', o:['That you’ll check with the team, then ask the Offline TAM before answering','Yes, no problem','No, dates can never change','Change the priority to Critical'], a:0, w:'Never confirm dates or speed yourself. Tell the customer you’ll check, ask the Offline TAM, then update the customer with the answer.'},
+ {t:12, k:'mc', q:'A misalignment case arrives. What is your first step?', o:['Test the origin: same page, same steps, same browser and screen size','Assign it to PE - Misalignments right away','Ask the TAM to shorten the text','Clear the CDN cache'], a:0, w:'Test the origin first. If only the translated site is broken, it’s ours. If the origin is broken too, let the customer know.'},
+ {t:12, k:'mc', q:'The misaligned text is inside a banner image. Where does the case go?', o:['To the TAM','To PE - Misalignments','To PE - Functionality','Back to the customer'], a:0, w:'Text inside an image goes to the TAM. They can modify text in images. Try selecting the text: if you can’t, it’s in the image.'},
+ {t:13, k:'mc', q:'Which URL parameter pushes a public page into the translation queue?', o:['?mpactionid=16408 plus your last name','?translate=true','?mpqueue=1','?lang=es'], a:0, w:'Add ?mpactionid=16408 plus your last name to the page URL and load it. Pushing only queues the content. It doesn’t translate it.'},
+ {t:13, k:'mc', q:'A Standard Translation case is waiting on the TAM. What do you set?', o:['Status Pending, due date next week','Status Closed','Status In Progress, due date today','Status Pending, due date next day'], a:0, w:'Pending while you wait on the TAM. Standard: due next week. Express or Critical: next day.'},
+ {t:14, k:'mc', q:'“Our German site is down right now.” You validated it: the origin is up. Where does it go?', o:['PE - Functionality, as Critical','PE - Other','PE - Translation','PE - Misalignments'], a:0, w:'A validated, active outage is PE - Functionality and Critical. A past outage, or a request for a root cause analysis, goes to PE - Other.'},
+ {t:14, k:'mc', q:'Directive Tags are showing on screen on the translated site. Which queue?', o:['PE - Translation','PE - Functionality','PE - Misalignments','The TAM'], a:0, w:'Translated content with unexpected encoding or Directive Tags on screen goes to PE - Translation.'},
+ {t:14, k:'mc', q:'The customer asks what it would cost to stop translating /careers/. Which queue?', o:['PE - Translation','PE - Other','The CXM only','No queue, just answer it'], a:0, w:'Scope revisions to Rule A, B, C or D go to PE - Translation, even when the customer only wants the cost first.'},
+ {t:14, k:'mc', q:'The language toggle doesn’t switch to French. What priority is it?', o:['Critical','Express','Standard','It depends on the word count'], a:0, w:'Toggle issues are never Express. Express is only for translation requests, or functionality concerns with no revenue impact.'},
+ {t:14, k:'mc', q:'A customer asks which IPs they should whitelist. What do you do?', o:['Assign it to PE - Other to confirm the IPs before anything is sent','Send them the full IP list right away','Assign it to PE - Functionality','Tell them to ask their own IT team'], a:0, w:'Let the PE confirm which IPs this customer should whitelist before anything goes to the customer.'},
+ {t:15, k:'mc', q:'When should you ask the customer for a HAR file?', o:['When they still see a functional issue we can’t replicate, after your origin test and tries','On every Translation case','Before you read the case','Only after the case is closed'], a:0, w:'HAR files are for Functionality issues we can’t replicate: logins, checkouts, forms and multi-step flows. Do your homework first, then ask early.'},
+ {t:15, k:'tf', q:'It’s fine to post a customer’s HAR file in a Teams group chat so more people can look.', o:TF, a:1, w:'False. A HAR file can contain cookies and form data. Keep it attached to the case only.'},
+
+ // ---------- LEVEL 4: tiles 16-19 ----------
+ {t:16, k:'mc', q:'The PE asks you to track a fix the customer shouldn’t see or be billed for. Which record type?', o:['Internal Request','Support Case','Translation','Offline Translation'], a:0, w:'An Internal Request has no customer visibility, and nothing is billable. A Support Case is visible to the customer and can be billable.'},
+ {t:16, k:'mc', q:'A customer calls with a new request. How do you create the case?', o:['Support Case, with Case Origin Phone','Internal Request, with Case Origin Internal','Support Case, with Case Origin Internal','No case, just reply by email'], a:0, w:'The customer should see it, so it’s a Support Case, and Case Origin is Phone because they called in.'},
+ {t:16, k:'mc', q:'Page one of Create a Case is done. What goes on page two?', o:['The Business Entity, the customer contact, the due date, and the target languages','The subject and description','The billable time','The PE assignment'], a:0, w:'Page two: the BE, the contact related to that BE, the due date, and only the target languages this request is about.'},
+ {t:17, k:'mc', q:'You test your Charles Rewrite on httpbin, and args is empty. What’s wrong?', o:['The values are in Match. Move them to Replace, and leave Match empty','Windows proxy is on','You need to add a question mark','The Rewrite needs a third rule'], a:0, w:'Values in Match make the rule do nothing. Put the name and value in Replace, and don’t type a question mark: Charles adds it.'},
+ {t:17, k:'mc', q:'You pushed content with Charles. When do you send the case to the TAM?', o:['Only when the PIDs show NEW after you click Update','Whenever you finish the flow','When a PID shows N/A','When nothing shows in ControlCenter'], a:0, w:'Only PIDs that show NEW go to the TAM. N/A, or nothing in the queue, goes to PE. The TAM can’t do anything with content that didn’t enter the queue.'},
+ {t:17, k:'mc', q:'Find in Session shows the missing text comes from a JSON file. What next?', o:['Post the URL and steps in the case, and forward it to PE','Send it to the TAM','Push it again with mpactionid','Tell the customer it can’t be translated'], a:0, w:'Content from JSON files or third-party domains won’t enter the queue the usual way. PE always reviews JSON files.'},
+ {t:18, k:'mc', q:'Your Spike quote comes to $3,000. What happens before you send it?', o:['The CXM reviews and approves it first','Nothing, send it now','Tier II signs it','The TAM approves it'], a:0, w:'Any Spike quote over $2,900 must be reviewed and approved by the CXM before anything goes to the customer.'},
+ {t:18, k:'mc', q:'Who receives the Spike email?', o:['The contact checked as Translation Budget Approver, with the CXM in CC','The Emergency Contact','Whoever opened the last case','The TAM'], a:0, w:'Find the Translation Budget Approver in the BE’s Related Contacts, and always CC the account’s CXM on every Spike email.'},
+ {t:18, k:'mc', q:'You sent the Spike email. What happens to the case?', o:['It stays Pending in your queue, with the due date a week out','It goes to the TAM right away','It’s closed','It’s set to Critical'], a:0, w:'Keep it Pending with the due date a week out. Then follow up, ask the CXM for another POC, and send a final notice if needed.'},
+ {t:19, k:'mc', q:'What is a QA Automation case?', o:['A defect QA’s scripts found on the customer’s origin site, which also shows on the translated sites','A translation QA wants reviewed','A request to add pages to scope','A MotionPoint proxy outage'], a:0, w:'Translated sites are built from the origin, so an origin defect shows everywhere. Only the customer can fix it, so we tell them in simple words.'},
+ {t:19, k:'mc', q:'It’s Friday. You just emailed the customer on a Critical QA case. What do you set?', o:['Pending, with the due date on Monday, the next business day','Pending, with the due date on Saturday','Pending, with the due date a week out','Closed'], a:0, w:'Critical or Express: Pending, and the due date moves to the next business day. Due dates never land on a weekend.'},
+
+ // ---------- LEVEL 5: tiles 20-24 ----------
+ {t:20, k:'mc', q:'A customer’s outage case came in as Standard. What do you do?', o:['Change the priority to Critical, and move the due date to the same day','Leave it as Standard','Change it to Express','Ask the customer which priority they want'], a:0, w:'Every outage case is Critical, whether it comes from PE or the customer.'},
+ {t:20, k:'mc', q:'Tier 1 customer, the translated site loads in English, and MotionPoint is at fault. What do you follow?', o:['The full P1 procedure: Emergency POCs, the P1 Teams chat, follow-ups every 2 hours','A regular Critical case, no P1 chat','A Standard case','Just wait for the PE'], a:0, w:'Tier 1 (24/7 Entitlement) plus MotionPoint at fault means the full P1 procedure. If the customer is at fault, no P1 chat, but follow up every 2 hours.'},
+ {t:20, k:'mc', q:'How often do you follow up with the customer on an outage case until they respond?', o:['Every 2 hours','Every 30 minutes','Once a day','Once a week'], a:0, w:'Follow up every 2 hours until they respond, by posts, emails and phone calls. If their team is working on it internally, follow up every day.'},
+ {t:20, k:'mc', q:'The outage is resolved. Who closes the case?', o:['Platform Ops, after you document it and send it to them','You, right away','The customer','The TAM'], a:0, w:'Tell everyone in the P1 chat, document the case, then send it to Platform Ops. They set up monitoring alerts and close it.'},
+ {t:21, k:'mc', q:'Scheduling VS email URLs in ControlCenter, how do you select target languages?', o:['One target language at a time, then repeat for the next','All languages at once','Only the first language listed','Let the TAM select them'], a:0, w:'Never select several languages at once. Map each language to its URL, and keep a checklist so nothing is missed or doubled.'},
+ {t:21, k:'mc', q:'French Canada isn’t in the main VS project’s target list. What do you do?', o:['Log out, open the separate INTL FR-CA project, and schedule the CAN URL there','Skip French Canada','Use the ROW URL in the main project','Send it to PE'], a:0, w:'French Canada lives in its own project, Victoria’s Secret INTL. Use the CAN URL there.'},
+ {t:21, k:'mc', q:'A red error says URLs were skipped because they’re already in the queue. What does it likely mean?', o:['You scheduled it twice, or a duplicate case was already scheduled. Check, don’t redo','ControlCenter is down','The URL is wrong','The customer must approve it first'], a:0, w:'Check before you redo anything. You may have scheduled the URL twice, or someone already worked a duplicate case.'},
+ {t:22, k:'mc', q:'The CDN keeps showing an old copy without the translations. Who can usually flush the cache?', o:['The customer’s own CDN contact or team','MotionPoint’s PE, any time','The TAM','The visitor'], a:0, w:'Almost every customer has a contact or team that clears their CDN cache. MotionPoint has no control over it unless the customer gives us access.'},
+ {t:22, k:'mc', q:'In CDN terms, what is TTL?', o:['How long a saved copy is kept before it’s refreshed','The time a translation takes','The number of CDN servers','The name of a CDN provider'], a:0, w:'Saved copies are kept for a set time, called TTL, and then refreshed.'},
+ {t:23, k:'mc', q:'You pushed the page, and ControlCenter shows it 100% translated with no new PID. What’s next?', o:['Search translation memory. If it’s there, send it to PE - Translation','Send it to the TAM','Close the case','Push it again tomorrow'], a:0, w:'Use Segment search for text, File search for images. Already in memory? Only a PE can activate it.'},
+ {t:23, k:'tf', q:'A teammate suggests sending a translated-but-not-showing case to the TAM. That’s fine.', o:TF, a:1, w:'False. Never send these to the TAM. TAMs can’t work on content already in memory. Only the PE can activate it.'},
+
+ {t:24, k:'mc', q:'“On our Spanish site, please use Carrito instead of Cesta.” Where does this case go?', o:['To the TAM, as translation feedback','To PE - Translation','To PE - Misalignments','To the CXM'], a:0, w:'Translation feedback goes to the TAM. Collect the URL, the language, the current word and the preferred word, then check it live before you close.'},
+ {t:24, k:'mc', q:'“We launch tomorrow. Can you translate these 1,000 words today?” What must you have before any Express work starts?', o:['The customer’s written approval of the Express fee','A call with the CXM','Nothing, just set it to Express','A PDR'], a:0, w:'Check the Express minimums, explain the fee (1,000 × $0.10 × 2.5 = $250), and get approval in writing. Then set Express and route it to the TAM with the deadline.'},
+ {t:24, k:'mc', q:'A case only says “The site is broken.” No URL, no screenshot. What do you do?', o:['Ask clear, numbered questions, and update the status so the next step is the customer’s','Assign it to PE - Functionality','Close it right away','Guess the page and test it'], a:0, w:'Every case needs a clear next step, even when it’s the customer’s. No reply? Send a friendly reminder before closing it as overdue.'},
+
+ // ---------- LEVEL 6: tiles 25-28 ----------
+ {t:25, k:'mc', q:'A call invite arrives on a case with no date or time. How do you find them?', o:['Download the .ics attachment, and open it with Outlook','Ask the customer','Check the case due date','Look in My Day'], a:0, w:'The .ics file is the calendar invite. Right-click it, choose Open with, and pick your MotionPoint Outlook.'},
+ {t:25, k:'mc', q:'A call starts in five minutes, with no context and no case. What do you do?', o:['Join, ask quick discovery questions, then decide who’s needed','Decline it','Ignore it','Send a PE instead'], a:0, w:'Join to understand, not to solve. Then bring in the PE, TAM, CXM or PM, or open a case.'},
+ {t:25, k:'mc', q:'The call is over. What do you document in the case?', o:['When it was, who attended, the reason, and next steps','Only the meeting link','Nothing, it was a call','Only the customer’s mood'], a:0, w:'Always document thoroughly, for future reference: when, who, why, and next steps.'},
+ {t:26, k:'mc', q:'It’s your email shift, and you have your own cases to work. What comes first?', o:['The shared channels: client notes, Teams calls, the Support inbox, and @support tags','Your own List View','Your Standard cases','Lunch'], a:0, w:'The four shared channels come first. When they’re quiet, work your own queue, Express and Critical first.'},
+ {t:26, k:'mc', q:'A caller says the call with your CEO dropped, and asks to be put through again. What do you do?', o:['Never transfer. Courteously offer to take a message, and share no contact details','Transfer them to the CEO','Give them the CEO’s email','Put them on hold and call the CEO'], a:0, w:'That’s a classic sales or scam line. Never cold transfer, and never share company information.'},
+ {t:26, k:'tf', q:'After hours, the on-call person also answers regular Support emails and Teams calls.', o:TF, a:1, w:'False. After hours, on-call handles only Express and Critical cases received through PagerDuty. Emails and calls wait for business hours.'},
+ {t:26, k:'mc', q:'A TAM tags @support in the General chat about a Critical case. What do you do first?', o:['React with a thumbs up or reply, so they know Support saw it, then act on it','Ignore it, it’s not your case','Wait for a second message','Forward it to the CXM'], a:0, w:'Acknowledge every @support message: react, or reply.'},
+ {t:27, k:'mc', q:'Salesforce is down and you’re notifying emergency contacts. Where does the emergency contacts group go?', o:['In Bcc, never To or Cc','In To','In Cc','In the subject line'], a:0, w:'Bcc keeps customer addresses private. They see only the Support address it was sent from.'},
+ {t:27, k:'tf', q:'The email template fills in the subject line for you.', o:TF, a:1, w:'False. Templates fill the body only, so you paste the subject in by hand.'},
+ {t:28, k:'mc', q:'A Technical services line shows 2 hours at $150 an hour. What did it cost?', o:['$300','$150','$225','$450'], a:0, w:'Hours times the contracted rate: 2 × $150 = $300.'},
+ {t:28, k:'mc', q:'A customer asks you to credit a charge. What do you do?', o:['It’s not your call. The CXM handles adjustments, so CC them','Credit it yourself','Tell them no','Ask the PE'], a:0, w:'You guide: where to look and how the math works. Disputes, adjustments and credits belong to the CXM.'},
+
+ // ---------- LEVEL 7: tiles 29-31 ----------
+ {t:29, k:'mc', q:'What must always be true for a case to be a PDR?', o:['A functional change is being made to a site that’s live, or soon to be live','The customer is unhappy','The case is Critical','The case has more than five attachments'], a:0, w:'Part one must be true, plus at least one more sign: a separate invoice, QA needed, big translation volume, a subscription change, or complex work.'},
+ {t:29, k:'mc', q:'Who can approve a PDR?', o:['Only a PM or a CXM','Anyone on the Support team','The customer','The TAM'], a:0, w:'Anyone can flag a PDR, but only a PM or CXM can approve it. Until the CXM confirms, it’s still a regular case.'},
+ {t:29, k:'mc', q:'The customer wants a new section of the site added to translation. Where does it go?', o:['Always to the CXM. It’s a Project','To the PE as a regular case','To the TAM','To QA'], a:0, w:'Adding sections or another environment to scope is always a Project, because we may be able to increase MRR.'},
+ {t:29, k:'mc', q:'It looks like a PDR, but the account’s PM no longer works at MotionPoint. Who gets it?', o:['The PM team lead','The CXM’s manager','Tier II','Nobody, work it as a regular case'], a:0, w:'No dedicated PM, or the PM left? Assign the case to the PM team lead, who assigns a PM.'},
+ {t:30, k:'mc', q:'Everything on a MAP call case is done. What’s the very last step?', o:['Email the Customer Support Director and Tier II: customer, issue, action taken, resolution','Nothing','Call the operator back','Open a second case'], a:0, w:'Every MAP call gets this report email. No exceptions.'},
+ {t:30, k:'mc', q:'Creating the case from a MAP call, where do you mention the MAP call?', o:['In the subject only','In every field','Nowhere','Only in a Teams message'], a:0, w:'Mention the MAP call in the subject only. The description says exactly what’s going on, with steps, screenshots and context.'},
+ {t:31, k:'mc', q:'Saturday, 2 AM: a customer without Beyond Words 24/7 opens an Express case. What happens?', o:['No PagerDuty alert. It waits for business hours','PagerDuty alerts you right away','It’s changed to Critical','The on-call PE handles it'], a:0, w:'After hours, Express alerts only for Beyond Words 24/7 customers. Critical alerts for everyone, 24/7.'},
+ {t:31, k:'mc', q:'PagerDuty alerts you. Within 30 minutes you should…', o:['Open the case, clear the milestone, and post a customer-visible note that we’re reviewing it','Fix the issue','Only acknowledge the alert','Wait for the morning team'], a:0, w:'Within 30 minutes: read the case, clear the milestone, post a customer-visible note, and call if they left a phone number.'},
+ {t:31, k:'ord', q:'You routed a Critical case to the on-call PE. Put the steps to get an acknowledgment in order.', o:['Text them the case number and what’s needed','No reply after 15 minutes: call','Call again, and leave a voicemail','Go to the PagerDuty escalation policy and contact the next person'], w:'Text, wait 15 minutes, call, call again with a voicemail, then the escalation policy. Only stop once someone acknowledges.'},
+ {t:31, k:'tf', q:'If no cases came in during your on-call shift, you don’t need to send the On-Call sheet.', o:TF, a:1, w:'False. Still send the sheet to Tier II the next day, and write that no Express or Critical cases came in.'},
+
+ // ---------- LEVEL 8: tiles 32-37 ----------
+ {t:32, k:'mc', q:'What does mp_trans_disable mean?', o:['Don’t translate this','Hide this on the translated site','Show this only on the translated site','Use existing translations but queue nothing new'], a:0, w:'Disable: don’t translate. Remove: hide on the translated site. Add: show only there. Schedule disable: existing translations, nothing new.'},
+ {t:32, k:'mc', q:'A form’s comment box has default text that should appear translated. Which tag do you wrap it with?', o:['mp_trans_schedule_disable','mp_trans_disable','mp_trans_remove','mp_trans_add'], a:0, w:'Schedule disable uses existing translations, but doesn’t queue anything new, so what people type is never sent for translation.'},
+ {t:32, k:'tf', q:'Directive Tags added with JavaScript work just like tags in the HTML.', o:TF, a:1, w:'False. Tags added with JavaScript don’t work, and tags inside an attribute show up on the page. Put them directly in the HTML, and always close them.'},
+ {t:33, k:'mc', q:'A customer sends a translated URL. What do you search in Project Scope?', o:['The origin URL','The translated URL','The PID','The customer’s name'], a:0, w:'Searching by the translated URL gives back an error. Always search by the origin URL.'},
+ {t:33, k:'mc', q:'Project Scope says No for a blog post: /blog/* is excluded. What is it?', o:['Not a defect. Explain the scope, and loop in the CXM if they want it added','A PE - Translation bug','A TAM issue','A CDN problem'], a:0, w:'Not in scope is not a defect. It’s the scope the customer agreed to.'},
+ {t:34, k:'mc', q:'An Editor saves a change in Live Edit. What happens?', o:['It goes live right away, and every identical segment changes too','It waits for MotionPoint approval','Only that one segment changes, next week','Nothing until the TAM reviews it'], a:0, w:'A saved edit is live on the translated site immediately, and changes every identical segment.'},
+ {t:34, k:'mc', q:'A customer can send feedback in Live Edit, but can’t edit anything. Why?', o:['They have the Reviewer role','Their browser is too old','Live Edit is down','They need a VPN'], a:0, w:'Reviewers send feedback. Editors send feedback and make edits. Their CXM can help with roles.'},
+ {t:35, k:'mc', q:'A customer opened five cases this week, each to translate a few lines of text. What do you suggest?', o:['Memory Manager. CC their CXM and share the tutorial','Keep opening cases','Live Edit','Project Scope'], a:0, w:'Memory Manager reuses memory at no extra cost and charges new text at the per-word rate, with no billable human work.'},
+ {t:35, k:'mc', q:'What is the Standard turnaround in Memory Manager?', o:['Five days','One day','One hour','Two weeks'], a:0, w:'Standard is five days. Express is one day, with an additional cost, and it’s created as a MotionPoint case.'},
+ {t:36, k:'mc', q:'The customer wants their Spanish careers pages to go to the English site. Which rule?', o:['Rule D, Out of scope','Rule A, Auto-queues','Rule B, Manual only','Rule C, Nothing queued'], a:0, w:'A: auto. B: manual. C: nothing queued, stays in the original language. D: out of scope, redirects to the origin.'},
+ {t:36, k:'ord', q:'A scope change is approved. Put the case flow in order.', o:['Send the case to the PE for the config update','Send it to the TAM to hold or translate','The TAM notifies the customer and forwards it to QA','QA returns it, and you update the App A and close'], w:'One case moves like a relay baton: PE, TAM, QA, then back to Support to update the App A, notify the customer and close.'},
+ {t:37, k:'mc', q:'An API response says 401. What does it mean?', o:['The API key isn’t valid','The job worked','Wrong content type','An error on our side'], a:0, w:'200 worked, 400 missing, 401 bad API key, 403 user can’t do that, 404 wrong address, 415 wrong content type, 500 our side.'},
+ {t:37, k:'mc', q:'A brand-new API user gets 403 Forbidden. What do you check?', o:['The profile is active, with TRANSLATION API USERS in the selected groups','The CDN cache','The App A','Their Live Edit role'], a:0, w:'403 means this user can’t do that. Check the user’s status and groups in ControlCenter.'}
+];
+
+</script>
+<script>
+(function(){
+'use strict';
+const $app = document.getElementById('app');
+const PASS = 80, QTIME = 20, BOSS_N = 20;
+const COLORS = {green:'#2F7A22', purple:'#5867E8', orange:'#C2410C', blue:'#1466F0', red:'#B42318', teal:'#0E7490', navy:'#0B2545'};
+const RANKS = [[0,'Trainee'],[1500,'Case Rookie'],[4000,'Case Router'],[7000,'Case Pro'],[10000,'Support Legend']];
+const ICON = {
+  star:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>',
+  trophy:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9 17h6"/></svg>',
+  flame:'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 11a5 5 0 0 1-10 0c0-3 1.5-4.5 2.5-6 .5 2 1.5 3 2.5 3 0-3-1-5 0-8z"/></svg>',
+  bolt:'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+  sound:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg>',
+  mute:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>',
+  check:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  x:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  book:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M8 7h7"/></svg>',
+  lock:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  medal:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="15" r="6"/><path d="M8 3l2 6M16 3l-2 6M12 12l1 2 2 .3-1.5 1.4.4 2.1-1.9-1-1.9 1 .4-2.1L9 14.3l2-.3z"/></svg>'
+};
+const BADGES = [
+  ['first','First Win','Finish any level.'], ['perfect','Perfect Run','Score 100% on a level.'], ['fire5','On Fire','Get 5 right in a row.'], ['fire10','Unstoppable','Get 10 right in a row.'],
+  ['bolt','Lightning Fast','Pass a level in Lightning mode.'], ['solo','No Lifelines','Pass a level without using a lifeline.'], ['all8','Never Assume','Pass all 8 levels.'], ['boss','Boss Slayer','Pass the Boss Round.']
+];
+
+// ---------- storage ----------
+const KEY = 'support-case-quest-v1';
+function load(){ try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.levels) return s; } catch(e){} return {levels:{}, badges:[], name:'', mute:false, lightning:false, bestStreak:0}; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(P)); } catch(e){} }
+const P = load();
+
+// ---------- helpers ----------
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const tileUrl = t => BASE + TILES[t][0] + '/';
+const levelQs = L => Q.filter(q => q.t >= L.tiles[0] && q.t <= L.tiles[1]);
+const totalPts = () => Object.values(P.levels).reduce((s, l) => s + (l.pts || 0), 0);
+const rankOf = pts => { let r = RANKS[0], next = null; for (let i = 0; i < RANKS.length; i++) { if (pts >= RANKS[i][0]) { r = RANKS[i]; next = RANKS[i + 1] || null; } } return {name:r[1], from:r[0], next}; };
+const starsFor = pct => pct >= 100 ? 3 : pct >= PASS ? 2 : pct >= 60 ? 1 : 0;
+const starRow = n => '<span class="stars" aria-label="' + n + ' of 3 stars">' + [0,1,2].map(i => '<span class="star' + (i < n ? ' on' : '') + '">' + ICON.star + '</span>').join('') + '</span>';
+const allPassed = () => LEVELS.every(L => P.levels[L.id] && P.levels[L.id].passed);
+function award(id, list){ if (!P.badges.includes(id)) { P.badges.push(id); list.push(id); } }
+
+// ---------- sound ----------
+let ac = null;
+function ctx(){ if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { ac = null; } } if (ac && ac.state === 'suspended') ac.resume(); return ac; }
+function tone(f, t0, dur, type, vol, f2){ const c = ctx(); if (!c || P.mute) return; const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f, c.currentTime + t0); if (f2) o.frequency.exponentialRampToValueAtTime(f2, c.currentTime + t0 + dur); g.gain.setValueAtTime(0.0001, c.currentTime + t0); g.gain.exponentialRampToValueAtTime(vol, c.currentTime + t0 + .02); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t0 + dur); o.connect(g).connect(c.destination); o.start(c.currentTime + t0); o.stop(c.currentTime + t0 + dur + .05); }
+function noise(t0, dur, vol){ const c = ctx(); if (!c || P.mute) return; const b = c.createBuffer(1, c.sampleRate * dur, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length); const s = c.createBufferSource(), g = c.createGain(), fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = 900; s.buffer = b; g.gain.value = vol; s.connect(fl).connect(g).connect(c.destination); s.start(c.currentTime + t0); }
+const SFX = {
+  right(){ tone(659, 0, .14, 'triangle', .25); tone(880, .1, .14, 'triangle', .25); tone(1319, .2, .32, 'triangle', .22); tone(1760, .2, .32, 'sine', .08); },
+  wrong(){ tone(196, 0, .5, 'sawtooth', .22, 92); tone(147, 0, .5, 'square', .12, 70); noise(0, .28, .25); },
+  streak(){ [1047,1319,1568,2093].forEach((f, i) => tone(f, i * .07, .18, 'sine', .14)); },
+  win(){ [523,659,784,1047,784,1047].forEach((f, i) => tone(f, i * .13, i === 5 ? .6 : .2, 'triangle', .22)); },
+  tick(){ tone(1200, 0, .04, 'square', .05); },
+  click(){ tone(700, 0, .05, 'sine', .08); }
+};
+
+// ---------- confetti ----------
+const fx = document.getElementById('fx'), fxc = fx.getContext('2d');
+let parts = [], fxRun = false;
+function confetti(n){ if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; const w = fx.width = innerWidth, h = fx.height = innerHeight; const cols = ['#1466F0','#2F7A22','#F5B400','#C2410C','#5867E8','#0E7490','#8FD16F']; for (let i = 0; i < n; i++) parts.push({x: w / 2 + (Math.random() - .5) * w * .3, y: h * .35, vx: (Math.random() - .5) * 14, vy: -Math.random() * 14 - 4, r: 4 + Math.random() * 5, c: cols[i % cols.length], a: Math.random() * 6, life: 140 + Math.random() * 60}); if (!fxRun) { fxRun = true; requestAnimationFrame(stepFx); } }
+function stepFx(){ fxc.clearRect(0, 0, fx.width, fx.height); parts = parts.filter(p => p.life > 0); parts.forEach(p => { p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += .2; p.life--; fxc.save(); fxc.translate(p.x, p.y); fxc.rotate(p.a); fxc.fillStyle = p.c; fxc.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); fxc.restore(); }); if (parts.length) requestAnimationFrame(stepFx); else { fxRun = false; fxc.clearRect(0, 0, fx.width, fx.height); } }
+function popText(txt){ const d = document.createElement('div'); d.className = 'pop'; d.textContent = txt; document.body.appendChild(d); setTimeout(() => d.remove(), 1200); }
+
+// ---------- HOME ----------
+function home(){
+  stopTimer();
+  const pts = totalPts(), rk = rankOf(pts), pct = rk.next ? Math.round((pts - rk.from) / (rk.next[0] - rk.from) * 100) : 100;
+  const passedN = LEVELS.filter(L => P.levels[L.id] && P.levels[L.id].passed).length;
+  let h = '<header class="hero"><div class="wrap"><div><div class="eyebrow">Customer Support &middot; Knowledge Check</div><h1>Support Case Quest</h1>' +
+    '<p>Eight levels, in the same order as the <a href="' + LIB + '" target="_blank" rel="noopener">Support Training Library</a>. Answer, earn points and stars, and unlock the Boss Round.</p></div>' +
+    '<div class="player"><div class="rankcard"><div class="rankicon">' + ICON.trophy + '</div><div style="flex:1;min-width:0"><div class="rankname">' + rk.name + '</div><div class="rankpts">' + pts.toLocaleString() + ' points' + (rk.next ? ' &middot; ' + (rk.next[0] - pts).toLocaleString() + ' to ' + rk.next[1] : ' &middot; top rank') + '</div><div class="bar"><i style="width:' + pct + '%"></i></div></div></div>' +
+    '<div class="toggles"><button type="button" class="tog" id="tSound" aria-pressed="' + (!P.mute) + '">' + (P.mute ? ICON.mute + ' Sound off' : ICON.sound + ' Sound on') + '</button>' +
+    '<button type="button" class="tog" id="tBolt" aria-pressed="' + P.lightning + '">' + ICON.bolt + ' Lightning mode ' + (P.lightning ? 'on' : 'off') + '</button></div></div></div></header>';
+  h += '<main class="wrap"><div class="howto">' +
+    '<div class="how"><b>100 points</b>per right answer.</div><div class="how"><b>Streaks</b>3 in a row: ×1.5. 5 in a row: ×2.</div>' +
+    '<div class="how"><b>Lightning mode</b>' + QTIME + ' seconds per question, up to +50 speed bonus.</div><div class="how"><b>Pass with ' + PASS + '%</b>Wrong answer? You get the reason and the training to review.</div></div>';
+  h += '<div class="sectionhead"><h2>Levels</h2><span>' + passedN + ' of ' + LEVELS.length + ' passed</span></div><div class="levels">';
+  LEVELS.forEach(L => {
+    const s = P.levels[L.id] || {}, n = levelQs(L).length, c = COLORS[L.color];
+    const tl = []; for (let t = L.tiles[0]; t <= L.tiles[1]; t++) tl.push(t);
+    h += '<article class="lvl' + (s.passed ? ' passed' : '') + '"><div class="lvltop"><div class="lvlnum" style="background:' + c + '">' + L.n + '</div><div style="min-width:0"><h3>' + L.name + '</h3><p>' + L.sub + '</p></div></div>' +
+      '<div class="meta"><span class="pill">Trainings #' + L.tiles[0] + '&ndash;' + L.tiles[1] + '</span><span class="pill">' + n + ' questions</span>' + (s.passed ? '<span class="pill" style="background:var(--green-soft);color:var(--green)">Passed</span>' : '') + '</div>' +
+      '<div class="lvlfoot"><div>' + starRow(s.stars || 0) + '<div class="best">' + (s.best != null ? 'Best ' + s.best + '% &middot; ' + (s.pts || 0).toLocaleString() + ' pts' : 'Not played yet') + '</div></div>' +
+      '<button type="button" class="btn ' + (s.passed ? 'btn-ghost' : 'btn-primary') + '" data-start="' + L.id + '">' + (s.best != null ? 'Play again' : 'Start') + '</button></div></article>';
+  });
+  const bs = P.levels.boss || {}, open = allPassed();
+  h += '<article class="lvl boss' + (open ? ' open' : '') + '"><div class="lvltop"><div class="lvlnum" style="background:#B7791F">' + ICON.trophy + '</div><div style="min-width:0"><h3>Boss Round</h3><p>' + BOSS_N + ' mixed questions from all eight levels. Pass all 8 levels to unlock it.</p></div></div>' +
+    '<div class="lvlfoot"><div>' + starRow(bs.stars || 0) + '<div class="best">' + (bs.best != null ? 'Best ' + bs.best + '%' : (open ? 'Unlocked. Good luck!' : passedN + ' of 8 levels passed')) + '</div></div>' +
+    (open ? '<button type="button" class="btn btn-primary" data-start="boss">Face the Boss</button>' : '<span class="lockmsg">' + ICON.lock + ' Locked</span>') + '</div></article></div>';
+  h += '<div class="sectionhead" style="margin-top:28px"><h2>Badges</h2><span>' + P.badges.length + ' of ' + BADGES.length + ' earned</span></div><div class="badges">' +
+    BADGES.map(b => '<div class="badge' + (P.badges.includes(b[0]) ? ' got' : '') + '"><div class="ic">' + ICON.medal + '</div><div style="min-width:0"><b>' + b[1] + '</b><span>' + b[2] + '</span></div></div>').join('') + '</div>';
+  h += '<div class="share"><label for="pname">Your name</label><input id="pname" type="text" autocomplete="name" placeholder="For your results summary" value="' + esc(P.name) + '">' +
+    '<button type="button" class="btn btn-green" id="copyRes">Copy my results</button><span class="msg" id="copyMsg" aria-live="polite"></span></div>' +
+    '<p style="font-size:14px;color:var(--muted);margin:10px 2px 0">Paste your results to Tier II or the Director of Customer Support in Teams. Your progress is saved in this browser only.</p></main>' +
+    '<footer><div class="wrap">Stuck on a question? Watch the training again in the <a href="' + LIB + '" target="_blank" rel="noopener">Support Training Library</a>. If in doubt, ask: Support team, Tier II or Director of Customer Support.</div></footer>';
+  $app.innerHTML = h; window.scrollTo(0, 0);
+  document.getElementById('tSound').onclick = () => { P.mute = !P.mute; save(); if (!P.mute) SFX.click(); home(); };
+  document.getElementById('tBolt').onclick = () => { P.lightning = !P.lightning; save(); SFX.click(); home(); };
+  $app.querySelectorAll('[data-start]').forEach(b => b.onclick = () => { ctx(); SFX.click(); start(b.dataset.start); });
+  const inp = document.getElementById('pname'); inp.oninput = () => { P.name = inp.value.slice(0, 60); save(); };
+  document.getElementById('copyRes').onclick = copyResults;
+}
+
+function resultsText(){
+  const lines = ['Support Case Quest results' + (P.name ? ' – ' + P.name : ''), 'Rank: ' + rankOf(totalPts()).name + ' (' + totalPts().toLocaleString() + ' points)', ''];
+  LEVELS.concat([{id:'boss', n:'', name:'Boss Round'}]).forEach(L => { const s = P.levels[L.id]; lines.push((L.n ? 'Level ' + L.n + ' ' : '') + L.name + ': ' + (s && s.best != null ? s.best + '% best, ' + '★'.repeat(s.stars || 0) + '☆'.repeat(3 - (s.stars || 0)) + (s.passed ? ', passed' : '') : 'not played')); });
+  lines.push('', 'Badges: ' + (P.badges.length ? BADGES.filter(b => P.badges.includes(b[0])).map(b => b[1]).join(', ') : 'none yet'));
+  return lines.join('\n');
+}
+function copyResults(){
+  const txt = resultsText(), m = document.getElementById('copyMsg');
+  const fallback = () => { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch(e) {} ta.remove(); m.textContent = ok ? 'Copied. Paste it in Teams.' : 'Copy blocked. Select and copy:\n' + txt; };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => { m.textContent = 'Copied. Paste it in Teams.'; }, fallback); else fallback();
+}
+
+// ---------- QUIZ ----------
+let S = null, timerId = null;
+function stopTimer(){ if (timerId) { clearInterval(timerId); timerId = null; } }
+function start(id){
+  let L, qs;
+  if (id === 'boss') { L = {id:'boss', n:'', name:'Boss Round'}; qs = shuffle(Q).slice(0, BOSS_N); }
+  else { L = LEVELS.find(x => x.id === id); qs = shuffle(levelQs(L)); }
+  S = {L, qs, i:0, pts:0, streak:0, maxStreak:0, right:0, res:[], used:{fifty:false, hint:false}, usedAny:false, lightning:P.lightning, answered:false, order:[]};
+  question();
+}
+function topbar(){
+  const L = S.L;
+  return '<div class="qtop"><div class="wrap"><div class="qtopin"><button type="button" class="btn btn-ghost" id="quit" style="min-height:38px;padding:0 14px">&larr; Levels</button>' +
+    '<div class="qtitle">' + (L.n ? 'Level ' + L.n + ': ' : '') + L.name + '</div><div class="score">' +
+    '<span class="chip">' + (S.i + 1) + ' / ' + S.qs.length + '</span><span class="chip">' + S.pts.toLocaleString() + ' pts</span>' +
+    (S.streak >= 2 ? '<span class="chip fire">' + ICON.flame + ' ' + S.streak + ' streak</span>' : '') + (S.lightning ? '<span class="chip">' + ICON.bolt + ' Lightning</span>' : '') + '</div></div>' +
+    '<div class="dots" aria-hidden="true">' + S.qs.map((q, k) => '<span class="dot' + (k < S.res.length ? (S.res[k].ok ? ' ok' : ' no') : k === S.i ? ' now' : '') + '"></span>').join('') + '</div>' +
+    (S.lightning ? '<div class="timer" id="timer"><i id="timerbar"></i></div>' : '') + '</div></div>';
+}
+function question(){
+  stopTimer(); S.answered = false; S.order = []; S.t0 = Date.now();
+  const q = S.qs[S.i];
+  S.view = q.k === 'ord' ? shuffle(q.o.map((txt, idx) => ({txt, idx}))) : shuffle(q.o.map((txt, idx) => ({txt, idx})));
+  if (q.k === 'tf') S.view = q.o.map((txt, idx) => ({txt, idx}));
+  const typeLabel = q.k === 'tf' ? 'True or false' : q.k === 'ord' ? 'Put in order' : /What do you|What now|What happens|Who|Where|Which/.test(q.q) ? 'What would you do?' : 'Multiple choice';
+  let h = topbar() + '<main class="wrap"><section class="qcard" id="qcard"><div class="qmeta"><span class="qtype">' + typeLabel + '</span><span class="qfrom">&middot; Training #' + q.t + '</span></div>' +
+    '<h2 class="qtext">' + q.q + '</h2>';
+  if (q.k === 'ord') h += '<p class="ordhint">Tap the steps in the right order, then check your answer.</p>';
+  h += '<div class="' + (q.k === 'tf' ? 'tfrow' : 'opts') + '" id="opts">' + S.view.map((v, k) => '<button type="button" class="opt" data-k="' + k + '"><span class="key">' + (q.k === 'tf' ? (k === 0 ? 'T' : 'F') : (k + 1)) + '</span><span>' + v.txt + '</span></button>').join('') + '</div>';
+  if (q.k === 'ord') h += '<div class="nextrow" style="justify-content:flex-start"><button type="button" class="btn btn-ghost" id="ordReset">Reset</button><button type="button" class="btn btn-primary" id="ordCheck" disabled>Check order</button></div>';
+  h += '<div class="life">' + (q.k === 'mc' ? '<button type="button" class="lifebtn" id="l50"' + (S.used.fifty ? ' disabled' : '') + '>50/50</button>' : '') +
+    '<button type="button" class="lifebtn" id="lhint"' + (S.used.hint ? ' disabled' : '') + '>Hint: which training?</button></div><div class="hint" id="hint" aria-live="polite"></div>' +
+    '<div id="fb" aria-live="polite"></div></section></main>';
+  $app.innerHTML = h; window.scrollTo(0, 0);
+  document.getElementById('quit').onclick = () => { SFX.click(); home(); };
+  const btns = $app.querySelectorAll('.opt');
+  btns.forEach(b => b.onclick = () => q.k === 'ord' ? pickOrder(+b.dataset.k, b) : answer(S.view[+b.dataset.k].idx === q.a, +b.dataset.k));
+  if (q.k === 'ord') { document.getElementById('ordReset').onclick = () => { S.order = []; btns.forEach(b => { b.classList.remove('picked'); b.querySelector('.key').textContent = (+b.dataset.k + 1); }); document.getElementById('ordCheck').disabled = true; };
+    document.getElementById('ordCheck').onclick = () => answer(S.order.every((k, pos) => S.view[k].idx === pos), -1); }
+  const l50 = document.getElementById('l50');
+  if (l50) l50.onclick = () => { S.used.fifty = true; S.usedAny = true; l50.disabled = true; SFX.click(); const wrong = shuffle(S.view.map((v, k) => k).filter(k => S.view[k].idx !== q.a)).slice(0, 2); wrong.forEach(k => { const b = btns[k]; b.classList.add('gone'); b.disabled = true; }); };
+  document.getElementById('lhint').onclick = e => { S.used.hint = true; S.usedAny = true; e.currentTarget.disabled = true; SFX.click(); document.getElementById('hint').innerHTML = ICON.book + ' Covered in training #' + q.t + ': ' + TILES[q.t][1] + '.'; };
+  if (S.lightning) { const bar = document.getElementById('timerbar'), tm = document.getElementById('timer'); let last = QTIME;
+    timerId = setInterval(() => { const left = QTIME - (Date.now() - S.t0) / 1000; bar.style.width = Math.max(0, left / QTIME * 100) + '%'; if (left < 6) { tm.classList.add('low'); if (Math.ceil(left) < last) { last = Math.ceil(left); SFX.tick(); } } if (left <= 0) { stopTimer(); answer(false, -2); } }, 100); }
+}
+function pickOrder(k, b){
+  if (S.answered || S.order.includes(k)) return; SFX.click(); S.order.push(k); b.classList.add('picked'); b.querySelector('.key').textContent = S.order.length;
+  if (S.order.length === S.view.length) document.getElementById('ordCheck').disabled = false;
+}
+function answer(ok, k){
+  if (S.answered) return; S.answered = true; stopTimer();
+  const q = S.qs[S.i], btns = $app.querySelectorAll('.opt'), card = document.getElementById('qcard');
+  btns.forEach(b => b.disabled = true);
+  if (q.k !== 'ord') { btns.forEach((b, j) => { if (S.view[j].idx === q.a) b.classList.add('right'); }); if (!ok && k >= 0) btns[k].classList.add('wrong'); }
+  else btns.forEach(b => { const j = +b.dataset.k; b.classList.remove('picked'); b.classList.add(ok ? 'right' : 'wrong'); b.querySelector('.key').textContent = S.view[j].idx + 1; });
+  let gained = 0, mult = 1, bonus = 0;
+  if (ok) {
+    S.streak++; S.right++; S.maxStreak = Math.max(S.maxStreak, S.streak);
+    mult = S.streak >= 5 ? 2 : S.streak >= 3 ? 1.5 : 1;
+    if (S.lightning) bonus = Math.round(Math.max(0, QTIME - (Date.now() - S.t0) / 1000) / QTIME * 50);
+    gained = Math.round((100 + bonus) * mult); S.pts += gained;
+    SFX.right(); if (S.streak === 3 || S.streak === 5 || S.streak === 10) { setTimeout(SFX.streak, 350); popText(S.streak === 10 ? 'Unstoppable!' : S.streak === 5 ? 'On fire! ×2' : 'Streak! ×1.5'); }
+  } else { S.streak = 0; SFX.wrong(); card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); }
+  S.res.push({ok, q});
+  const cheers = ['Nice!','Spot on!','Exactly right!','You got it!','Great call!','Correct!'];
+  const fb = document.getElementById('fb');
+  fb.innerHTML = '<div class="fb ' + (ok ? 'ok' : 'no') + '"><div class="fbhead">' + (ok ? ICON.check + ' ' + cheers[Math.floor(Math.random() * cheers.length)] : ICON.x + (k === -2 ? ' Time’s up!' : ' Not quite.')) +
+    (ok ? '<span class="pts">+' + gained + (mult > 1 ? ' (×' + mult + ' streak)' : '') + (bonus ? ' incl. ' + bonus + ' speed' : '') + '</span>' : '') + '</div>' +
+    '<p>' + (ok ? '' : (q.k === 'ord' ? 'The right order is shown above. ' : '')) + q.w + '</p>' +
+    (ok ? '' : '<a class="review" href="' + tileUrl(q.t) + '" target="_blank" rel="noopener">' + ICON.book + ' Review training #' + q.t + ': ' + TILES[q.t][1] + '</a>') + '</div>' +
+    '<div class="nextrow"><button type="button" class="btn btn-primary" id="next">' + (S.i + 1 < S.qs.length ? 'Next question &rarr;' : 'See my results') + '</button></div>';
+  const nx = document.getElementById('next'); nx.focus({preventScroll:true}); fb.scrollIntoView({behavior:'smooth', block:'nearest'});
+  nx.onclick = () => { S.i++; if (S.i < S.qs.length) question(); else results(); };
+}
+document.addEventListener('keydown', e => {
+  if (!S || !document.getElementById('qcard')) return;
+  if (e.target.tagName === 'INPUT') return;
+  const q = S.qs[S.i];
+  if (!S.answered) {
+    let k = -1; if (/^[1-4]$/.test(e.key)) k = +e.key - 1; if (q.k === 'tf') { if (/^t$/i.test(e.key)) k = 0; if (/^f$/i.test(e.key)) k = 1; }
+    const b = $app.querySelectorAll('.opt')[k]; if (b && !b.disabled) { e.preventDefault(); b.click(); }
+  } else if (e.key === 'Enter') { const n = document.getElementById('next'); if (n && document.activeElement !== n) { e.preventDefault(); n.click(); } }
+});
+
+// ---------- RESULTS ----------
+function results(){
+  stopTimer();
+  const L = S.L, pct = Math.round(S.right / S.qs.length * 100), stars = starsFor(pct), passed = pct >= PASS, got = [];
+  const prev = P.levels[L.id] || {};
+  if (!S.practice) {
+    P.levels[L.id] = {best: Math.max(prev.best || 0, pct), stars: Math.max(prev.stars || 0, stars), passed: prev.passed || passed, pts: Math.max(prev.pts || 0, S.pts)};
+    award('first', got);
+    if (pct === 100) award('perfect', got);
+    if (passed && S.lightning) award('bolt', got);
+    if (passed && !S.usedAny) award('solo', got);
+    if (allPassed()) award('all8', got);
+    if (L.id === 'boss' && passed) award('boss', got);
+  }
+  P.bestStreak = Math.max(P.bestStreak || 0, S.maxStreak);
+  if (S.maxStreak >= 5) award('fire5', got);
+  if (S.maxStreak >= 10) award('fire10', got);
+  save();
+  const missed = S.res.filter(r => !r.ok);
+  const head = S.practice ? 'Practice round done' : pct === 100 ? 'Perfect run!' : passed ? 'Level passed!' : pct >= 60 ? 'So close!' : 'Keep going!';
+  const sub = S.practice ? (pct === 100 ? 'You fixed every one you missed. Now replay the full level to raise your score.' : 'Practice round: it doesn’t change your level score. Review the trainings below.') : passed ? (L.id === 'boss' ? 'You beat the Boss Round. Never assume, always be sure.' : 'Great work. Keep the streak alive on the next level.') : 'You need ' + PASS + '% to pass. Review the trainings below, then try again.';
+  let h = '<div class="qtop"><div class="wrap"><div class="qtopin"><button type="button" class="btn btn-ghost" id="quit" style="min-height:38px;padding:0 14px">&larr; Levels</button><div class="qtitle">' + (L.n ? 'Level ' + L.n + ': ' : '') + L.name + (S.practice ? ' &middot; practice' : '') + '</div></div></div></div>' + '<main class="wrap"><div class="res"><section class="reshero"><div class="eyebrow" style="color:var(--green)">' + (L.n ? 'Level ' + L.n + ' &middot; ' : '') + L.name + '</div>' +
+    '<h2 style="font-size:28px">' + head + '</h2>' + starRow(stars) + '<div class="big">' + pct + '%</div><p style="margin:0;color:var(--muted);max-width:520px">' + sub + '</p>' +
+    '<div class="resgrid"><div class="stat"><b>' + S.right + '/' + S.qs.length + '</b><span>right</span></div><div class="stat"><b>' + S.pts.toLocaleString() + '</b><span>points</span></div><div class="stat"><b>' + S.maxStreak + '</b><span>best streak</span></div></div>' +
+    (got.length ? '<div><div style="font-weight:900;margin:6px 0">New badges</div><div class="newbadges">' + got.map(id => { const b = BADGES.find(x => x[0] === id); return '<span class="chip" style="background:var(--gold-soft);border-color:transparent">' + ICON.medal + ' ' + b[1] + '</span>'; }).join('') + '</div></div>' : '') +
+    '<div class="nextrow" style="justify-content:center">' + (missed.length ? '<button type="button" class="btn btn-ghost" id="retryMissed">Retry the ' + missed.length + ' I missed</button>' : '') +
+    '<button type="button" class="btn btn-ghost" id="again">Play again</button><button type="button" class="btn btn-primary" id="back">Back to levels</button></div></section>';
+  if (missed.length) {
+    h += '<section class="missed"><h3>Review what you missed</h3>' + missed.map(r => '<div class="miss"><div class="q">' + r.q.q + '</div><div class="a"><b>Answer:</b> ' + (r.q.k === 'ord' ? r.q.o.map((x, i) => (i + 1) + '. ' + x).join(' &nbsp; ') : r.q.o[r.q.a]) + '</div>' +
+      '<a class="review" href="' + tileUrl(r.q.t) + '" target="_blank" rel="noopener">' + ICON.book + ' Training #' + r.q.t + ': ' + TILES[r.q.t][1] + '</a></div>').join('') + '</section>';
+  }
+  h += '</div></main>';
+  $app.innerHTML = h; window.scrollTo(0, 0);
+  document.getElementById('quit').onclick = home;
+  document.getElementById('back').onclick = () => { SFX.click(); home(); };
+  document.getElementById('again').onclick = () => { SFX.click(); start(L.id); };
+  const rm = document.getElementById('retryMissed');
+  if (rm) rm.onclick = () => { SFX.click(); S = {L, qs: shuffle(missed.map(r => r.q)), i:0, pts:0, streak:0, maxStreak:0, right:0, res:[], used:{fifty:false, hint:false}, usedAny:false, lightning:P.lightning, answered:false, order:[], practice:true}; question(); };
+  if (passed || (S.practice && pct === 100)) { SFX.win(); confetti(pct === 100 ? 260 : 160); } else SFX.wrong();
+}
+
+home();
+})();
+
+</script>
+
+</body>
+</html>
