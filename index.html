@@ -217,7 +217,8 @@ const TILES = {
  40:['P1-Outage-Process','The P1 Outage Process'],
  41:['API-Guidelines','Finding API Job IDs'],
  42:['Security-Issues-to-SecOps','Security Issues Go to SecOps'],
- 43:['Support-Performance-Dashboard-guide','Reading the Support Performance Dashboard']
+ 43:['Omni-Channel-Status','Your Omni-Channel Status'],
+ 44:['Support-Performance-Dashboard-guide','Reading the Support Performance Dashboard']
 };
 const LEVELS = [
  {id:'l1', n:1, name:'First Steps', sub:'Your role, Teams etiquette, the proxy, how cases begin, and the habits that make you reliable.', tiles:[1,7], color:'green'},
@@ -228,7 +229,7 @@ const LEVELS = [
  {id:'l6', n:6, name:'Daily Procedures', sub:'Call invites, the email shift, Salesforce outages, and invoices.', tiles:[28,31], color:'teal'},
  {id:'l7', n:7, name:'Escalations and On-Call', sub:'PDRs, MAP calls, and the on-call procedure.', tiles:[32,34], color:'navy'},
  {id:'l8', n:8, name:'Platform Tools', sub:'Directive Tags, Project Scope, Live Edit, Memory Manager, and the App A.', tiles:[35,39], color:'purple'},
- {id:'l9', n:9, name:'High Stakes', sub:'The P1 outage process, API job IDs, security issues for SecOps, and your performance numbers.', tiles:[40,43], color:'red'}
+ {id:'l9', n:9, name:'High Stakes', sub:'The P1 outage process, API job IDs, security issues for SecOps, your Omni-Channel status, and your performance numbers.', tiles:[40,44], color:'red'}
 ];
 const TF = ['True', 'False'];
 const Q = [
@@ -372,15 +373,22 @@ const Q = [
  {t:40, k:'tf', q:'The site is still down at the end of your shift, so you can close the outage case.', o:TF, a:1, w:'False. Never close an outage case while the issue is ongoing. Keep it open and keep following up.'},
 
  // ---------- NEW: Security Issues Go to SecOps (#42) ----------
- {t:42, k:'mc', q:'A customer reports an NGINX vulnerability from a security scan. Where does it go?', o:['SecOps, by email to secops@motionpoint.com','PE - Other','PE - Functionality','PE - Translation'], a:0, w:'Security and vulnerability reports not reproducible on the website go to SecOps. There’s no queue, so you email them, with the CXM in CC.'},
+ {t:42, k:'mc', q:'A customer reports an NGINX vulnerability from a security scan. Where does it go?', o:['SecOps, by email to infosec@motionpoint.com','PE - Other','PE - Functionality','PE - Translation'], a:0, w:'Security and vulnerability reports not reproducible on the website go to SecOps. There’s no queue, so you email them, with the CXM in CC.'},
  {t:42, k:'mc', q:'You emailed SecOps. What status does the case get?', o:['Pending › Pending Internal','Closed','In Progress','New'], a:0, w:'Pending with the Sub Status Pending Internal, until SecOps responds. You’re waiting on our own team.'},
  {t:42, k:'mc', q:'How do you reach the SecOps contacts on Teams?', o:['Create a new group chat for the case, named with the case # and customer, and add the CXM','Post in an existing SecOps channel','Email them again instead','Wait for them to find the case'], a:0, w:'There’s no existing chat. You create a new group chat each time, with the contacts from Support - Procedures › Vulnerability cases, plus the CXM.'},
  {t:42, k:'mc', q:'The vulnerability is on the customer’s origin site. What do you do?', o:['Don’t start work. Ask them to share it with their security team, then close the case','Send it to SecOps','Assign it to PE - Functionality','Investigate it yourself'], a:0, w:'The customer owns their origin site, and their security team must review it. We have no control over it.'},
 
  // ---------- NEW: Support Performance Dashboard (#43) ----------
- {t:43, k:'mc', q:'What utilization does each Support Specialist aim for?', o:['At least 90%','50%','75%','Exactly 100%, every day'], a:0, w:'The target is 90% or more. Training and internal meetings count as productive time, so log them in My Day.'},
- {t:43, k:'mc', q:'Your utilization shows 118%. What does that usually mean?', o:['Check your time entries for a mistake','You’re doing great, nothing to check','Your cases are overdue','You need more training time'], a:0, w:'Over 110% usually means a time entry is wrong, like a duplicate or a typo in the minutes.'},
- {t:43, k:'mc', q:'What Time to Start (TTS) do you aim for on Express and Critical cases?', o:['100%','90%','75%','50%'], a:0, w:'90% or more on Standard cases, and 100% on Express and Critical.'},
+ {t:44, k:'mc', q:'What utilization does each Support Specialist aim for?', o:['At least 90%','50%','75%','Exactly 100%, every day'], a:0, w:'The target is 90% or more. Training and internal meetings count as productive time, so log them in My Day.'},
+ {t:44, k:'mc', q:'Your utilization shows 118%. What does that usually mean?', o:['Check your time entries for a mistake','You’re doing great, nothing to check','Your cases are overdue','You need more training time'], a:0, w:'Over 110% usually means a time entry is wrong, like a duplicate or a typo in the minutes.'},
+ {t:44, k:'mc', q:'What Time to Start (TTS) do you aim for on Express and Critical cases?', o:['100%','90%','75%','50%'], a:0, w:'90% or more on Standard cases, and 100% on Express and Critical.'},
+
+ // ---------- NEW: Your Omni-Channel Status (#43) ----------
+ {t:43, k:'mc', q:'You start your shift. Which Omni-Channel status?', o:['Available - Case','Busy','On Break','Offline'], a:0, w:'Available - Case is your default from the start of your shift. Only Available agents receive new cases.'},
+ {t:43, k:'mc', q:'There’s a Team meeting, or a company Town Hall. Which Omni-Channel status?', o:['Stay Available - Case','Busy','On Break','Offline'], a:0, w:'Stay Available during Team meetings and Town Halls. You can still acknowledge new cases and complete their milestones.'},
+ {t:43, k:'mc', q:'You’re joining a bridge call with a customer. What do you do?', o:['Go Busy, and post it in Customer Support Internal','Go Offline','Stay Available and say nothing','Go On Break'], a:0, w:'Bridge calls are Busy. Post it in Customer Support Internal (for example “TMO call”), then post “Back” and go Available again.'},
+ {t:43, k:'mc', q:'It’s time for your 60-minute lunch. Which Omni-Channel status?', o:['On Break','Offline','Busy','Available - Case'], a:0, w:'Lunch and your two 15-minute breaks are On Break. Offline is only for the end of your shift.'},
+ {t:43, k:'tf', q:'Your bridge call ended an hour ago, and you’re still on Busy. That’s fine, because Busy still receives new cases.', o:TF, a:1, w:'False. Only Available - Case receives new cases. Stuck on Busy means fewer cases for you, a lower case pace, and more work for your teammates.'},
 ];
 
 </script>
