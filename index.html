@@ -218,7 +218,8 @@ const TILES = {
  41:['API-Guidelines','Finding API Job IDs'],
  42:['Security-Issues-to-SecOps','Security Issues Go to SecOps'],
  43:['Omni-Channel-Status','Your Omni-Channel Status'],
- 44:['Support-Performance-Dashboard-guide','Reading the Support Performance Dashboard']
+ 44:['Support-Performance-Dashboard-guide','Reading the Support Performance Dashboard'],
+ 45:['UAT-cases-guidelines','UAT Cases: Route, Don’t Fix']
 };
 const LEVELS = [
  {id:'l1', n:1, name:'First Steps', sub:'Your role, Teams etiquette, the proxy, how cases begin, and the habits that make you reliable.', tiles:[1,7], color:'green'},
@@ -229,7 +230,7 @@ const LEVELS = [
  {id:'l6', n:6, name:'Daily Procedures', sub:'Call invites, the email shift, Salesforce outages, and invoices.', tiles:[28,31], color:'teal'},
  {id:'l7', n:7, name:'Escalations and On-Call', sub:'PDRs, MAP calls, and the on-call procedure.', tiles:[32,34], color:'navy'},
  {id:'l8', n:8, name:'Platform Tools', sub:'Directive Tags, Project Scope, Live Edit, Memory Manager, and the App A.', tiles:[35,39], color:'purple'},
- {id:'l9', n:9, name:'High Stakes', sub:'The P1 outage process, API job IDs, security issues for SecOps, your Omni-Channel status, and your performance numbers.', tiles:[40,44], color:'red'}
+ {id:'l9', n:9, name:'High Stakes', sub:'The P1 outage process, API job IDs, security issues for SecOps, your Omni-Channel status, your performance numbers, and UAT cases.', tiles:[40,45], color:'red'}
 ];
 const TF = ['True', 'False'];
 const Q = [
@@ -389,6 +390,13 @@ const Q = [
  {t:43, k:'mc', q:'You’re joining a bridge call with a customer. What do you do?', o:['Go Busy, and post it in Customer Support Internal','Go Offline','Stay Available and say nothing','Go On Break'], a:0, w:'Bridge calls are Busy. Post it in Customer Support Internal (for example “TMO call”), then post “Back” and go Available again.'},
  {t:43, k:'mc', q:'It’s time for your 60-minute lunch. Which Omni-Channel status?', o:['On Break','Offline','Busy','Available - Case'], a:0, w:'Lunch and your two 15-minute breaks are On Break. Offline is only for the end of your shift.'},
  {t:43, k:'tf', q:'Your bridge call ended an hour ago, and you’re still on Busy. That’s fine, because Busy still receives new cases.', o:TF, a:1, w:'False. Only Available - Case receives new cases. Stuck on Busy means fewer cases for you, a lower case pace, and more work for your teammates.'},
+
+ // ---------- NEW: UAT Cases (#45) ----------
+ {t:45, k:'mc', q:'A case shows the orange banner: “This case may be a part of a project’s UAT phase.” What do you do?', o:['Complete the milestone, post a customer-visible note, and assign it to the team in the MPD email','Troubleshoot it, then assign it to PE','Assign it to the Delivery Team','Close it, since the site isn’t live yet'], a:0, w:'Three steps, and that’s it: milestone, customer-visible note, and assign to the team the MPD email names (QA, TAM, PE or PM). No troubleshooting.'},
+ {t:45, k:'tf', q:'Time you spend on a UAT case is billable, as long as it’s over 15 minutes.', o:TF, a:1, w:'False. UAT cases are never billable. UAT work is part of the project, so billed time would go on the wrong invoice.'},
+ {t:45, k:'mc', q:'What’s the difference between QA and UAT?', o:['QA is MotionPoint’s internal check. UAT is the customer checking it meets their business needs','They’re two names for the same thing','UAT happens after Go-Live','QA is done by the customer'], a:0, w:'Our QA team validates the solution. During UAT, the customer tests the translated site before Go-Live and approves it for launch.'},
+ {t:45, k:'mc', q:'During UAT, the customer replies: “When will this be fixed?” Who answers?', o:['The PM, who handles all customer communication during UAT','You, with your best estimate','The PE assigned to the fix','Nobody, UAT questions aren’t answered'], a:0, w:'Don’t promise fixes or dates. Make sure the assigned team and the PM see it. The PM handles all customer communication during UAT.'},
+ {t:45, k:'mc', q:'The MPD email notes say “MTPE during the IC; Brand Adaptive once in maintenance.” What does IC mean?', o:['Initial Conversion: the site’s existing content translated for the first time','Internal Case','Incident Closure','Invoice Credit'], a:0, w:'During the Initial Conversion, MTPE is used: machine translation, reviewed and edited by human linguists. In maintenance, new content uses Brand Adaptive.'},
 ];
 
 </script>
